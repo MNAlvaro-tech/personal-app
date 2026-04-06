@@ -1,4 +1,4 @@
-const CACHE = 'mivida-v3';
+const CACHE = 'mivida-v4';
 const ASSETS = [
   './',
   './index.html',
