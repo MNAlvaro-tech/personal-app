@@ -1499,16 +1499,7 @@
         </div>
         <div class="mes-block" id="mes-block"></div>
         <div class="cat-chart" id="cat-chart"></div>
-        <div class="pills" id="cat-pills">
-          <div class="pill active" data-cat="todos" onclick="filterGastos(this,'todos')">Todos</div>
-          <div class="pill" data-cat="comida" onclick="filterGastos(this,'comida')">🍽 Comida</div>
-          <div class="pill" data-cat="transporte" onclick="filterGastos(this,'transporte')">🚌 Transporte</div>
-          <div class="pill" data-cat="ocio" onclick="filterGastos(this,'ocio')">🎉 Ocio</div>
-          <div class="pill" data-cat="salud" onclick="filterGastos(this,'salud')">💊 Salud</div>
-          <div class="pill" data-cat="hogar" onclick="filterGastos(this,'hogar')">🏠 Hogar</div>
-          <div class="pill" data-cat="suscripciones" onclick="filterGastos(this,'suscripciones')">📱 Suscripciones</div>
-          <div class="pill" data-cat="otro" onclick="filterGastos(this,'otro')">📦 Otro</div>
-        </div>
+        <div class="pills" id="cat-pills"></div>
         <div id="lista-gastos"></div>
       </div>
 
@@ -1593,15 +1584,7 @@
         <div class="field"><label>Cantidad (€)</label><input type="number" id="g-cantidad" placeholder="0.00"
             step="0.01" inputmode="decimal"></div>
         <div class="field"><label>Categoría</label>
-          <select id="g-cat">
-            <option value="comida">🍽 Comida</option>
-            <option value="transporte">🚌 Transporte</option>
-            <option value="ocio">🎉 Ocio</option>
-            <option value="salud">💊 Salud</option>
-            <option value="hogar">🏠 Hogar</option>
-            <option value="suscripciones">📱 Suscripciones</option>
-            <option value="otro">📦 Otro</option>
-          </select>
+          <select id="g-cat"></select>
         </div>
       </div>
       <div class="field"><label>Descripción</label><input type="text" id="g-desc" placeholder="ej. Cena con amigos">
@@ -1745,7 +1728,7 @@
       document.querySelectorAll('.nb').forEach(b => b.classList.remove('active'));
       document.getElementById('view-' + s).classList.add('active');
       btn.classList.add('active');
-      ({ home: renderDashboard, gastos: renderGastos, viajes: renderViajes, libros: renderLibros, habitos: renderHabitos, tareas: renderTareas })[s]?.();
+      ({ home: renderDashboard, gastos: renderGastos, viajes: renderViajes, libros: renderLibros, trabajo: renderTrabajo, noticias: renderNoticiasYBolsa })[s]?.();
     }
 
     // ── MODALS ──────────────────────────────────────────────────
@@ -1807,6 +1790,7 @@
       { k: 'comida', e: '🍽', label: 'Comida', color: '#c8a96e' },
       { k: 'transporte', e: '🚌', label: 'Transporte', color: '#7a8fc4' },
       { k: 'ocio', e: '🎉', label: 'Ocio', color: '#9b7ac4' },
+      { k: 'ropa', e: '👕', label: 'Ropa', color: '#e89e9e' },
       { k: 'salud', e: '💊', label: 'Salud', color: '#7cc99a' },
       { k: 'hogar', e: '🏠', label: 'Hogar', color: '#6cbfbf' },
       { k: 'suscripciones', e: '📱', label: 'Suscripciones', color: '#c47a7a' },
@@ -1839,6 +1823,15 @@
 
     // ── GASTOS RENDER ───────────────────────────────────────────
     let gastoFiltro = 'todos';
+
+    function renderFiltrosGasto() {
+      const pillsHTML = `<div class="pill active" data-cat="todos" onclick="filterGastos(this,'todos')">Todos</div>` +
+        CATS.map(c => `<div class="pill" data-cat="${c.k}" style="border-color:${c.color};color:${c.color}" onclick="filterGastos(this,'${c.k}')">${c.e} ${c.label}</div>`).join('');
+      document.getElementById('cat-pills').innerHTML = pillsHTML;
+      
+      const selectHTML = CATS.map(c => `<option value="${c.k}">${c.e} ${c.label}</option>`).join('');
+      document.getElementById('g-cat').innerHTML = selectHTML;
+    }
 
     function saveGasto() {
       const cantidad = parseFloat(document.getElementById('g-cantidad').value);
@@ -2177,21 +2170,20 @@
     }
 
     async function fetchNews() {
-      if (!FINNHUB_KEY || FINNHUB_KEY === 'YOUR_FINNHUB_API_KEY') return { error: true, articles: [], msg: 'Falta API Key' };
       try {
-        const res = await fetch(`https://finnhub.io/api/v1/news?category=general&token=${FINNHUB_KEY}`);
+        const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=https://e00-expansion.uecdn.es/rss/mercados.xml`);
         if (!res.ok) throw new Error('Fetch falló. (Tal vez exceso de cuota)');
         const data = await res.json();
-        if (data.error) {
-          return { error: true, articles: [], msg: data.error };
+        if (data.status !== 'ok') {
+          return { error: true, articles: [], msg: 'Error convirtiendo RSS a JSON API' };
         }
-        // Finnhub devuelve { headline, image, url, summary, source, datetime }
-        const articles = data.slice(0, 10).map(item => ({
-          title: item.headline,
-          url: item.url,
-          source: { name: item.source },
-          publishedAt: item.datetime ? item.datetime * 1000 : Date.now(),
-          image: item.image
+        // rss2json devuelve la prop "items"
+        const articles = data.items.slice(0, 10).map(item => ({
+          title: item.title,
+          url: item.link,
+          source: { name: 'Expansión (Mercados)' },
+          publishedAt: item.pubDate ? new Date(item.pubDate.replace(/-/g, '/')).getTime() : Date.now(),
+          image: item.thumbnail || (item.enclosure && item.enclosure.link ? item.enclosure.link : null)
         }));
         return articles;
       } catch (e) {
@@ -2450,6 +2442,7 @@
     // ── INIT ────────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('g-fecha').value = today();
+      renderFiltrosGasto();
       autoAddSubs();
       renderDashboard();
       document.querySelector('[onclick="openModal(\'modal-limits\')"]').onclick = openLimitsModal;
