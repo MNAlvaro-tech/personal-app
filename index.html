@@ -276,8 +276,8 @@
       background: var(--gold)
     }
 
-    .dc.viajes::before {
-      background: var(--blue)
+    .dc.ahorro::before {
+      background: #ffd700
     }
 
     .dc.libros::before {
@@ -1074,64 +1074,47 @@
       margin-top: 2px
     }
 
-    /* ── VIAJES ── */
-    .via-card {
-      background: var(--s1);
+    /* ── AHORRO ── */
+    .ahorro-card {
+      background: var(--s2);
       border: 1px solid var(--b);
       border-radius: var(--r);
-      padding: 14px;
-      margin-bottom: 9px
+      padding: 16px;
+      margin-bottom: 12px;
     }
-
-    .via-dest {
-      font-family: 'DM Serif Display', serif;
-      font-size: 19px
+    .ahorro-meta-hdr {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
     }
-
-    .via-fechas {
+    .ahorro-meta-t {
+      font-size: 16px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .ahorro-meta-v {
+      font-size: 16px;
+      color: var(--green);
+    }
+    .ahorro-prog-bar {
+      background: var(--s);
+      border-radius: 8px;
+      height: 8px;
+      margin-bottom: 8px;
+      overflow: hidden;
+    }
+    .ahorro-prog-fill {
+      background: var(--green);
+      height: 100%;
+    }
+    .ahorro-prog-lbl {
       font-size: 11px;
       color: var(--m);
-      margin-top: 3px
-    }
-
-    .via-budget {
-      font-size: 12px;
-      color: var(--gold);
-      margin-top: 6px;
-      font-weight: 500
-    }
-
-    .via-cl {
-      margin-top: 10px;
-      border-top: 1px solid var(--b);
-      padding-top: 10px
-    }
-
-    .via-ci {
       display: flex;
-      align-items: center;
-      gap: 9px;
-      padding: 4px 0;
-      font-size: 13px;
-      cursor: pointer
-    }
-
-    .via-ck {
-      width: 17px;
-      height: 17px;
-      border-radius: 4px;
-      border: 1.5px solid var(--b);
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 10px;
-      transition: all .2s
-    }
-
-    .via-ck.done {
-      background: var(--blue);
-      border-color: var(--blue)
+      justify-content: space-between;
     }
 
     /* ── MISC ── */
@@ -1147,6 +1130,20 @@
 
     .btn-del:active {
       color: var(--red)
+    }
+
+    .btn-edit {
+      background: none;
+      border: none;
+      color: var(--m);
+      font-size: 15px;
+      cursor: pointer;
+      padding: 4px;
+      flex-shrink: 0
+    }
+
+    .btn-edit:active {
+      color: var(--gold)
     }
 
     .empty {
@@ -1503,20 +1500,24 @@
         <div id="lista-gastos"></div>
       </div>
 
-      <!-- VIAJES -->
-      <div class="view" id="view-viajes">
+      <!-- AHORRO -->
+      <div class="view" id="view-ahorro">
         <div class="sh">
-          <div class="st">✈️ Viajes</div>
-          <button class="btn-add" onclick="openModal('modal-viaje')">+ Añadir</button>
+          <div class="st">🐷 Ahorro</div>
+          <div>
+            <button class="btn-sub" style="padding:6px 10px;font-size:12px;width:auto;" onclick="openModal('modal-ahorro-meta')">⚙ Meta</button>
+            <button class="btn-sub" style="padding:6px 10px;font-size:12px;width:auto;background:var(--s2);color:var(--red);border:1px solid var(--b)" onclick="openModal('modal-ahorro-retirar')">- Retirar</button>
+          </div>
         </div>
-        <div id="lista-viajes"></div>
+        <div id="ahorro-meta-container"></div>
+        <div id="lista-ahorro"></div>
       </div>
 
       <!-- LIBROS -->
       <div class="view" id="view-libros">
         <div class="sh">
           <div class="st">📚 Libros</div>
-          <button class="btn-add" onclick="openModal('modal-libro')">+ Añadir</button>
+          <button class="btn-add" onclick="openModalLibro()">+ Añadir</button>
         </div>
         <div class="pills" id="lib-pills">
           <div class="pill active" data-st="todos" onclick="filterLibros(this,'todos')">Todos</div>
@@ -1568,7 +1569,7 @@
     <nav id="nav">
       <button class="nb active" onclick="goTo('home',this)"><span class="ic">⌂</span>Inicio</button>
       <button class="nb" onclick="goTo('gastos',this)"><span class="ic">💸</span>Gastos</button>
-      <button class="nb" onclick="goTo('viajes',this)"><span class="ic">✈️</span>Viajes</button>
+      <button class="nb" onclick="goTo('ahorro',this)"><span class="ic">🐷</span>Ahorro</button>
       <button class="nb" onclick="goTo('libros',this)"><span class="ic">📚</span>Libros</button>
       <button class="nb" onclick="goTo('trabajo',this)"><span class="ic">💼</span>Trabajo</button>
       <button class="nb" onclick="goTo('noticias',this)"><span class="ic">📰</span>Noticias</button>
@@ -1606,22 +1607,27 @@
     </div>
   </div>
 
-  <!-- MODAL VIAJE -->
-  <div class="mo" id="modal-viaje" onclick="closeModalOutside(event,this)">
+  <!-- MODAL AHORRO META -->
+  <div class="mo" id="modal-ahorro-meta" onclick="closeModalOutside(event,this)">
     <div class="modal">
       <div class="mh"></div>
-      <div class="mt">Nuevo Viaje</div>
-      <div class="field"><label>Destino</label><input type="text" id="v-destino" placeholder="ej. París, Roma, Tokio…">
-      </div>
-      <div class="fr">
-        <div class="field"><label>Desde</label><input type="date" id="v-desde"></div>
-        <div class="field"><label>Hasta</label><input type="date" id="v-hasta"></div>
-      </div>
-      <div class="field"><label>Presupuesto (€)</label><input type="number" id="v-presupuesto" placeholder="0"
-          inputmode="decimal"></div>
-      <div class="field"><label>Notas</label><textarea id="v-notas"
-          placeholder="Ideas, hoteles, cosas que ver…"></textarea></div>
-      <button class="btn-sub" onclick="saveViaje()">Guardar viaje</button>
+      <div class="mt">Meta de Ahorro</div>
+      <p style="font-size:12px;color:var(--m);margin-bottom:16px">Define un objetivo para motivarte a ahorrar.</p>
+      <div class="field"><label>Objetivo (Ej. Móvil nuevo)</label><input type="text" id="a-meta-nombre" placeholder="Nombre"></div>
+      <div class="field"><label>Cantidad a alcanzar (€)</label><input type="number" id="a-meta-cantidad" placeholder="0" inputmode="decimal"></div>
+      <button class="btn-sub" onclick="saveMetaAhorro()">Guardar Meta</button>
+    </div>
+  </div>
+
+  <!-- MODAL AHORRO RETIRAR -->
+  <div class="mo" id="modal-ahorro-retirar" onclick="closeModalOutside(event,this)">
+    <div class="modal">
+      <div class="mh"></div>
+      <div class="mt">Retirar Ahorro</div>
+      <p style="font-size:12px;color:var(--m);margin-bottom:16px">Utiliza parte de tu dinero ahorrado. Esto restará del total.</p>
+      <div class="field"><label>Motivo</label><input type="text" id="a-ret-motivo" placeholder="Ej. Compra móvil"></div>
+      <div class="field"><label>Cantidad a retirar (€)</label><input type="number" id="a-ret-cantidad" placeholder="0" inputmode="decimal"></div>
+      <button class="btn-sub" style="background:var(--red)" onclick="retirarAhorro()">Confirmar retiro</button>
     </div>
   </div>
 
@@ -1629,7 +1635,8 @@
   <div class="mo" id="modal-libro" onclick="closeModalOutside(event,this)">
     <div class="modal">
       <div class="mh"></div>
-      <div class="mt">Nuevo Libro</div>
+      <div class="mt" id="modal-libro-title">Nuevo Libro</div>
+      <input type="hidden" id="l-edit-id" value="">
       <div class="field"><label>Título</label><input type="text" id="l-titulo" placeholder="Título del libro"></div>
       <div class="fr">
         <div class="field" style="flex:1"><label>Autor</label><input type="text" id="l-autor" placeholder="Autor"></div>
@@ -1728,7 +1735,7 @@
       document.querySelectorAll('.nb').forEach(b => b.classList.remove('active'));
       document.getElementById('view-' + s).classList.add('active');
       btn.classList.add('active');
-      ({ home: renderDashboard, gastos: renderGastos, viajes: renderViajes, libros: renderLibros, trabajo: renderTrabajo, noticias: renderNoticiasYBolsa })[s]?.();
+      ({ home: renderDashboard, gastos: renderGastos, ahorro: renderAhorro, libros: renderLibros, trabajo: renderTrabajo, noticias: renderNoticiasYBolsa })[s]?.();
     }
 
     // ── MODALS ──────────────────────────────────────────────────
@@ -1794,6 +1801,7 @@
       { k: 'salud', e: '💊', label: 'Salud', color: '#7cc99a' },
       { k: 'hogar', e: '🏠', label: 'Hogar', color: '#6cbfbf' },
       { k: 'suscripciones', e: '📱', label: 'Suscripciones', color: '#c47a7a' },
+      { k: 'ahorro', e: '🐷', label: 'Ahorro', color: '#ffd700' },
       { k: 'otro', e: '📦', label: 'Otro', color: '#aaa' }
     ];
     const catMap = Object.fromEntries(CATS.map(c => [c.k, c]));
@@ -1935,43 +1943,99 @@
       const now = new Date(); now.setHours(0, 0, 0, 0);
       return Math.ceil((d - now) / 86400000);
     }
-    function saveViaje() {
-      const destino = document.getElementById('v-destino').value.trim();
-      if (!destino) { alert('Introduce un destino'); return }
-      const viajes = DB.get('viajes');
-      viajes.unshift({ id: Date.now(), destino, desde: document.getElementById('v-desde').value, hasta: document.getElementById('v-hasta').value, presupuesto: document.getElementById('v-presupuesto').value, notas: document.getElementById('v-notas').value.trim(), checklist: [{ id: 1, text: 'Comprar billete ida', done: false }, { id: 2, text: 'Comprar billete vuelta', done: false }, { id: 3, text: 'Reservar alojamiento', done: false }] });
-      DB.set('viajes', viajes);
-      ['v-destino', 'v-desde', 'v-hasta', 'v-presupuesto', 'v-notas'].forEach(i => document.getElementById(i).value = '');
-      closeModal('modal-viaje'); renderViajes();
+    // ── AHORRO ──────────────────────────────────────────────────
+    function saveMetaAhorro() {
+      const nombre = document.getElementById('a-meta-nombre').value.trim();
+      const cantidad = parseFloat(document.getElementById('a-meta-cantidad').value);
+      if (!nombre || !cantidad || cantidad <= 0) { alert('Introduce un nombre y cantidad válida'); return; }
+      DB.setObj('ahorro-meta', { nombre, cantidad });
+      closeModal('modal-ahorro-meta');
+      ['a-meta-nombre', 'a-meta-cantidad'].forEach(i => document.getElementById(i).value = '');
+      renderAhorro();
+      renderDashboard();
     }
-    function toggleViajeCheck(vid, cid) {
-      const viajes = DB.get('viajes'); const v = viajes.find(x => x.id == vid);
-      if (!v) return; const c = (v.checklist || []).find(x => x.id == cid); if (c) c.done = !c.done;
-      DB.set('viajes', viajes); renderViajes();
+    function retirarAhorro() {
+      const motivo = document.getElementById('a-ret-motivo').value.trim() || 'Retiro';
+      const cantidad = parseFloat(document.getElementById('a-ret-cantidad').value);
+      if (!cantidad || cantidad <= 0) { alert('Introduce una cantidad válida'); return; }
+      const retiros = DB.get('ahorro-retiros');
+      retiros.unshift({ id: Date.now(), motivo, cantidad, fecha: today() });
+      DB.set('ahorro-retiros', retiros);
+      ['a-ret-motivo', 'a-ret-cantidad'].forEach(i => document.getElementById(i).value = '');
+      closeModal('modal-ahorro-retirar');
+      renderAhorro();
+      renderDashboard();
     }
-    function renderViajes() {
-      const viajes = DB.get('viajes');
-      const lista = document.getElementById('lista-viajes');
-      if (!viajes.length) { lista.innerHTML = `<div class="empty"><div class="ei">✈️</div><p>No tienes viajes planeados.<br>¡Es hora de soñar!</p></div>`; return }
-      lista.innerHTML = viajes.map(v => {
-        const days = daysUntil(v.desde);
-        const daysTag = days !== null ? (days === 0 ? ` <span class="badge gold">¡HOY!</span>` : days > 0 ? ` <span class="badge b">✈ en ${days}d</span>` : '') : '';
-        return `<div class="via-card">
-      <div class="chr">
-        <div>
-          <div class="via-dest">${v.destino}${daysTag}</div>
-          <div class="via-fechas">${v.desde ? fmtDate(v.desde) : '?'} → ${v.hasta ? fmtDate(v.hasta) : '?'}</div>
-          ${v.presupuesto ? `<div class="via-budget">Presupuesto: €${parseFloat(v.presupuesto).toLocaleString('es-ES')}</div>` : ''}
-          ${v.notas ? `<div class="cm" style="margin-top:6px">${v.notas}</div>` : ''}
-        </div>
-        <button class="btn-del" onclick="delItem('viajes',${v.id},renderViajes)">✕</button>
-      </div>
-      <div class="via-cl">${(v.checklist || []).map(c => `
-        <div class="via-ci" onclick="toggleViajeCheck(${v.id},${c.id})">
-          <div class="via-ck ${c.done ? 'done' : ''}">${c.done ? '✓' : ''}</div>
-          <span style="${c.done ? 'text-decoration:line-through;opacity:.5' : ''}">${c.text}</span>
-        </div>`).join('')}</div>
-    </div>`;
+    function renderAhorro() {
+      const gastos = DB.get('gastos');
+      const aportes = gastos.filter(g => g.cat === 'ahorro');
+      const retiros = DB.get('ahorro-retiros');
+      
+      const totalAportado = aportes.reduce((sum, g) => sum + parseFloat(g.cantidad || 0), 0);
+      const totalRetirado = retiros.reduce((sum, r) => sum + parseFloat(r.cantidad || 0), 0);
+      const saldo = totalAportado - totalRetirado;
+      
+      const meta = DB.getObj('ahorro-meta', null);
+      const container = document.getElementById('ahorro-meta-container');
+      
+      if (meta) {
+        const pct = Math.min((saldo / meta.cantidad) * 100, 100).toFixed(1);
+        container.innerHTML = `
+          <div class="ahorro-card">
+            <div class="ahorro-meta-hdr">
+              <div class="ahorro-meta-t">🎯 ${meta.nombre}</div>
+              <div class="ahorro-meta-v">€${saldo.toFixed(2)} / €${meta.cantidad}</div>
+            </div>
+            <div class="ahorro-prog-bar">
+              <div class="ahorro-prog-fill" style="width:${pct}%"></div>
+            </div>
+            <div class="ahorro-prog-lbl">
+              <span>${pct}% completado</span>
+              <button class="btn-del" style="font-size:12px;padding:0;color:var(--m)" onclick="DB.setObj('ahorro-meta', null); renderAhorro(); renderDashboard();">Eliminar Meta</button>
+            </div>
+          </div>
+        `;
+      } else {
+        container.innerHTML = `
+          <div class="ahorro-card" style="text-align:center">
+            <div style="font-size:24px;margin-bottom:8px">🐷 €${saldo.toFixed(2)}</div>
+            <div style="font-size:12px;color:var(--m)">Saldo Total Ahorrado</div>
+          </div>
+        `;
+      }
+      
+      const lista = document.getElementById('lista-ahorro');
+      const allMovs = [
+         ...aportes.map(a => ({ ...a, type: 'aporte' })),
+         ...retiros.map(r => ({ ...r, type: 'retiro' }))
+      ];
+      
+      if (!allMovs.length) {
+        lista.innerHTML = `<div class="empty"><div class="ei">🐷</div><p>Aún no hay ahorros.<br>Añade gastos con categoría Ahorro.</p></div>`;
+        return;
+      }
+      
+      allMovs.sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+      
+      lista.innerHTML = allMovs.map(m => {
+        const isAporte = m.type === 'aporte';
+        const sign = isAporte ? '+' : '-';
+        const color = isAporte ? 'var(--green)' : 'var(--red)';
+        const desc = isAporte ? (m.desc || 'Aporte') : m.motivo;
+        return `
+          <div class="card">
+            <div class="chr">
+              <div>
+                <div class="ct">${isAporte ? '📥' : '📤'} ${desc}</div>
+                <div class="cm">${fmtDate(m.fecha)}</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <div class="ca" style="color:${color}">${sign}€${parseFloat(m.cantidad).toFixed(2).replace('.', ',')}</div>
+                ${!isAporte ? `<button class="btn-del" onclick="delItem('ahorro-retiros',${m.id},() => {renderAhorro(); renderDashboard();})">✕</button>` : ''}
+              </div>
+            </div>
+          </div>
+        `;
       }).join('');
     }
 
@@ -2001,6 +2065,33 @@
       };
       r.readAsDataURL(file);
     }
+    function openModalLibro() {
+      document.getElementById('modal-libro-title').textContent = 'Nuevo Libro';
+      document.getElementById('l-edit-id').value = '';
+      ['l-titulo', 'l-autor', 'l-notas'].forEach(i => { if (document.getElementById(i)) document.getElementById(i).value = '' });
+      if (document.getElementById('l-estado')) document.getElementById('l-estado').value = 'pendiente';
+      if (document.getElementById('l-rating')) document.getElementById('l-rating').value = '';
+      if (document.getElementById('l-cover')) document.getElementById('l-cover').value = '';
+      if (document.getElementById('rating-field')) document.getElementById('rating-field').style.display = 'none';
+      openModal('modal-libro');
+    }
+
+    function editLibro(id) {
+      const libros = DB.get('libros');
+      const l = libros.find(x => x.id == id);
+      if (!l) return;
+      document.getElementById('modal-libro-title').textContent = 'Editar Libro';
+      document.getElementById('l-edit-id').value = l.id;
+      document.getElementById('l-titulo').value = l.titulo || '';
+      document.getElementById('l-autor').value = l.autor || '';
+      document.getElementById('l-estado').value = l.estado || 'pendiente';
+      document.getElementById('l-rating').value = l.rating || '';
+      document.getElementById('l-cover').value = '';
+      document.getElementById('l-notas').value = l.notas || '';
+      toggleRatingField();
+      openModal('modal-libro');
+    }
+
     function saveLibro() {
       const titulo = document.getElementById('l-titulo').value.trim();
       if (!titulo) { alert('Introduce un título'); return }
@@ -2009,13 +2100,33 @@
       const rating = (estado === 'leido' && rVal) ? Math.min(10, Math.max(1, parseFloat(rVal))) : null;
       const coverInput = document.getElementById('l-cover');
       const coverFile = coverInput ? coverInput.files[0] : null;
-      const doSave = (cover) => {
+      const editId = document.getElementById('l-edit-id') ? document.getElementById('l-edit-id').value : '';
+
+      const doSave = (newCover) => {
         const libros = DB.get('libros');
-        libros.unshift({ id: Date.now(), titulo, autor: document.getElementById('l-autor').value.trim(), estado, rating, cover: cover || null, notas: document.getElementById('l-notas').value.trim() });
+        if (editId) {
+          const idx = libros.findIndex(x => x.id == editId);
+          if (idx !== -1) {
+            const existingCover = libros[idx].cover || null;
+            const finalCover = newCover !== null ? newCover : existingCover;
+            libros[idx] = {
+              ...libros[idx],
+              titulo,
+              autor: document.getElementById('l-autor').value.trim(),
+              estado,
+              rating,
+              cover: finalCover,
+              notas: document.getElementById('l-notas').value.trim()
+            };
+          }
+        } else {
+          libros.unshift({ id: Date.now(), titulo, autor: document.getElementById('l-autor').value.trim(), estado, rating, cover: newCover || null, notas: document.getElementById('l-notas').value.trim() });
+        }
         DB.set('libros', libros);
         ['l-titulo', 'l-autor', 'l-notas'].forEach(i => { if (document.getElementById(i)) document.getElementById(i).value = '' });
         if (document.getElementById('l-rating')) document.getElementById('l-rating').value = '';
         if (document.getElementById('l-cover')) document.getElementById('l-cover').value = '';
+        if (document.getElementById('l-edit-id')) document.getElementById('l-edit-id').value = '';
         if (document.getElementById('rating-field')) document.getElementById('rating-field').style.display = 'none';
         closeModal('modal-libro'); renderLibros();
       };
@@ -2055,7 +2166,10 @@
               ${l.rating ? `<div class="lib-rating"><span class="lib-rating-val">${l.rating}</span><span class="lib-rating-stars">${starsHtml(l.rating)}</span></div>` : ''}
             </div>
           </div>
-          <button class="btn-del" onclick="delItem('libros',${l.id},renderLibros)">✕</button>
+          <div style="display:flex;align-items:center;gap:4px">
+            <button class="btn-edit" onclick="editLibro(${l.id})" title="Editar">✏️</button>
+            <button class="btn-del" onclick="delItem('libros',${l.id},renderLibros)" title="Eliminar">✕</button>
+          </div>
         </div>
         ${l.notas ? `<div class="cm" style="margin-top:8px">${l.notas}</div>` : ''}
       </div>
@@ -2094,7 +2208,7 @@
       const mesTurnos = turnos.filter(t => t.fecha && t.fecha.startsWith(currentYM));
 
       // Totals
-      const fijoBio = 1270;
+      const fijoBio = 1305;
       let sumGue = 0, countGue = 0;
       let sumAra = 0, countAra = 0;
       let sumOtr = 0;
@@ -2264,7 +2378,8 @@
     function exportarBackup() {
       const allData = {
         gastos: DB.get('gastos'),
-        viajes: DB.get('viajes'),
+        ahorroRetiros: DB.get('ahorro-retiros'),
+        ahorroMeta: DB.getObj('ahorro-meta', null),
         libros: DB.get('libros'),
         trabajo: DB.get('trabajo'),
         subs: DB.getObj('subs-fijas', []),
@@ -2357,29 +2472,7 @@
       }).join('');
     }
 
-    function renderUpcomingTrips() {
-      const viajes = DB.get('viajes');
-      const upcoming = viajes
-        .map(v => ({ ...v, days: daysUntil(v.desde) }))
-        .filter(v => v.days !== null && v.days >= 0)
-        .sort((a, b) => a.days - b.days)
-        .slice(0, 3);
-      const title = document.getElementById('trips-title');
-      const cont = document.getElementById('home-trips');
-      if (!upcoming.length) { title.style.display = 'none'; cont.innerHTML = ''; return }
-      title.style.display = '';
-      cont.innerHTML = upcoming.map(v => `
-        <div class="trip-upcoming" onclick="document.querySelectorAll('.nb')[2].click()">
-          <div class="trip-countdown">
-            <div class="tdays">${v.days === 0 ? '¡HOY!' : v.days}</div>
-            ${v.days > 0 ? '<div class="tdlbl">días</div>' : ''}
-          </div>
-          <div class="trip-upcoming-info">
-            <div class="trip-upcoming-dest">✈️ ${v.destino}</div>
-            <div class="trip-upcoming-date">${v.desde ? fmtDate(v.desde) : ''}${v.presupuesto ? ` · €${parseFloat(v.presupuesto).toLocaleString('es-ES')}` : ''}</div>
-          </div>
-        </div>`).join('');
-    }
+
 
     function renderDashboard() {
       const gastos = DB.get('gastos');
@@ -2390,14 +2483,20 @@
       const cls = pct === null ? 'ok' : pct < 70 ? 'ok' : pct < 90 ? 'warn' : 'over';
       const gastosCls = cls === 'over' ? 'var(--red)' : cls === 'warn' ? 'var(--gold)' : 'var(--green)';
 
-      const viajes = DB.get('viajes');
+      const aportes = gastos.filter(g => g.cat === 'ahorro');
+      const retiros = DB.get('ahorro-retiros');
+      const totalAportado = aportes.reduce((sum, g) => sum + parseFloat(g.cantidad || 0), 0);
+      const totalRetirado = retiros.reduce((sum, r) => sum + parseFloat(r.cantidad || 0), 0);
+      const saldo = totalAportado - totalRetirado;
+      const meta = DB.getObj('ahorro-meta', null);
+
       const libros = DB.get('libros');
       const cachedNews = DB.getObj('news-cache', null);
       const stockStatus = cachedNews ? 'Bolsa y Noticias listas.' : 'Pulsa para actualizar mercados.';
 
       const turnos = DB.get('trabajo');
       const mesTurnos = turnos.filter(t => t.fecha && t.fecha.startsWith(thisMonth()));
-      const turnosTotal = mesTurnos.reduce((a, t) => a + (parseFloat(t.sueldo) || 0), 0) + 1270; // 1270 biobizkaia
+      const turnosTotal = mesTurnos.reduce((a, t) => a + (parseFloat(t.sueldo) || 0), 0) + 1305; // 1305 biobizkaia
 
       document.getElementById('dash-grid').innerHTML = `
     <div class="dc gastos" onclick="document.querySelectorAll('.nb')[1].click()">
@@ -2407,11 +2506,11 @@
       <div class="cs">${mesG.length} registros</div>
       ${totalLim > 0 ? `<div class="limit-mini"><div class="limit-mini-fill ${cls}" style="width:${pct}%;background:${gastosCls}"></div></div>` : ''}
     </div>
-    <div class="dc viajes" onclick="document.querySelectorAll('.nb')[2].click()">
-      <div class="ci">✈️</div>
-      <div class="cl">Viajes</div>
-      <div class="cv">${viajes.length}</div>
-      <div class="cs">destinos guardados</div>
+    <div class="dc ahorro" onclick="document.querySelectorAll('.nb')[2].click()">
+      <div class="ci">🐷</div>
+      <div class="cl">Ahorro ${meta ? ' / Meta' : ''}</div>
+      <div class="cv">€${saldo.toFixed(0)}${meta ? ' / €' + meta.cantidad : ''}</div>
+      <div class="cs">${meta ? (Math.min((saldo / meta.cantidad)*100, 100)).toFixed(1) + '% completado' : 'Sin meta definida'}</div>
     </div>
     <div class="dc libros" onclick="document.querySelectorAll('.nb')[3].click()">
       <div class="ci">📚</div>
@@ -2433,7 +2532,6 @@
     </div>`;
 
       renderMonthChart();
-      renderUpcomingTrips();
     }
 
     // ── DELETE ──────────────────────────────────────────────────
